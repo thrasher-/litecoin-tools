@@ -42,7 +42,7 @@ func BuildTranslationsAndExclusions() {
 	Translations["比特币"] = "莱特币"
 	Translations["Bitmon"] = "Litecoin"
 	Translations["Bitmono"] = "Litecoin"
-	Translations["bitmona"] = "liteoin"
+	Translations["bitmona"] = "litecoin"
 
 	Exclusions = append(Exclusions, []string{"The Bitcoin Core Developers", "BitcoinGUI", "bitcoin-core", ".cpp"}...)
 }
