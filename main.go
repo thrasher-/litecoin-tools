@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 )
 
@@ -121,6 +122,13 @@ func ProcessFile(file string) error {
 	return nil
 }
 
+func GetOSPathSlash() string {
+	if runtime.GOOS == "windows" {
+		return "\\"
+	}
+	return "/"
+}
+
 func main() {
 	var srcDir string
 	flag.StringVar(&srcDir, "srcdir", "", "The source dir of the locale files.")
@@ -138,7 +146,7 @@ func main() {
 	BuildTranslationsAndExclusions()
 
 	for _, file := range files {
-		filePath := srcDir + "\\" + file.Name()
+		filePath := srcDir + GetOSPathSlash() + file.Name()
 		err := ProcessFile(filePath)
 		if err != nil {
 			log.Printf("\nError processing file %s. Error: %s", filePath, err)
