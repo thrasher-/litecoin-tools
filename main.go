@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 )
@@ -21,12 +22,12 @@ var (
 
 func BuildTranslationsAndExclusions() {
 	Translations = make(map[string]string)
+	Translations["BITCOIN"] = "LITECOIN"
 	Translations["Bitcoin"] = "Litecoin"
 	Translations["bitcoin"] = "litecoin"
 	Translations["Bitcion"] = "Litecion"
 	Translations["BTC"] = "LTC"
 	Translations["btc"] = "ltc"
-
 	Translations["بيتكوين"] = "Litecoin"
 	Translations["Біткойн"] = "Litecoin"
 	Translations["біткойн"] = "litecoin"
@@ -44,7 +45,6 @@ func BuildTranslationsAndExclusions() {
 	Translations["Bitmon"] = "Litecoin"
 	Translations["Bitmono"] = "Litecoin"
 	Translations["bitmona"] = "litecoin"
-
 	Exclusions = append(Exclusions, []string{"The Bitcoin Core Developers", "BitcoinGUI", "bitcoin-core", ".cpp"}...)
 }
 
@@ -101,7 +101,7 @@ func ProcessFile(file string) error {
 	for err == nil && !prefix {
 		result := ProcessAndModifyLine(line)
 		outputFile = append(outputFile, result...)
-		outputFile = append(outputFile, []byte("\r\n")...)
+		outputFile = append(outputFile, []byte(GetOSNewLine())...)
 		line, prefix, err = r.ReadLine()
 	}
 
@@ -113,13 +113,26 @@ func ProcessFile(file string) error {
 		return err
 	}
 
-	outputFile = outputFile[:len(outputFile)-2]
-	err = ioutil.WriteFile(file, outputFile, 0644)
+	if !strings.Contains(file, "bitcoin_de.ts") { // uglyyyy
+		outputFile = outputFile[:len(outputFile)-len(GetOSNewLine())]
+		err = ioutil.WriteFile(file, outputFile, 0644)
+	}
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func GetOSNewLine() string {
+	switch runtime.GOOS {
+	case "Windows":
+		return "\r\n"
+	case "darwin":
+		return "\r"
+	default:
+		return "\n"
+	}
 }
 
 func GetOSPathSlash() string {
@@ -146,6 +159,10 @@ func main() {
 	BuildTranslationsAndExclusions()
 
 	for _, file := range files {
+		if filepath.Ext(file.Name()) == ".qm" {
+			continue
+		}
+
 		filePath := srcDir + GetOSPathSlash() + file.Name()
 		err := ProcessFile(filePath)
 		if err != nil {
