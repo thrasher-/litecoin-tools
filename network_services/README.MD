@@ -1,0 +1,1 @@
+This tool checks a peers advertised network service bit and translates it to a human readable string.
