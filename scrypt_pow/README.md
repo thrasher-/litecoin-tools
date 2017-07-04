@@ -1,0 +1,3 @@
+This tool gives an example of scrypt PoW verification for mainnet block 29255.
+
+The block hash should be adf6e2e56df692822f5e064a8b6404a05d67cccd64bc90f57f65b46805e9a54b and the scrypt hash 0000000110c8357966576df46f3b802ca897deb7ad18b12f1c24ecff6386ebd9 which is below the target of 000000018ea70000000000000000000000000000000000000000000000000000.
