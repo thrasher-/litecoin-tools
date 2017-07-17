@@ -1,0 +1,53 @@
+{
+	"http_server": ":4001",
+
+	"slack": {
+		"token": "asdf",
+		"channel": "test"
+	},
+
+	"dns_seeders": [
+		{
+			"host": "seed-a.litecoin.loshan.co.uk,dnsseed.thrasher.io,dnsseed.litecointools.com,dnsseed.litecoinpool.org,dnsseed.koin-project.com",
+			"type": "mainnet"
+		},
+		{
+			"host": "testnet-seed.litecointools.com,seed-b.litecoin.loshan.co.uk,dnsseed-testnet.thrasher.io",
+			"type": "testnet"
+		}
+	],
+
+	"websites": [
+		{
+			"host": "litecoin.org",
+			"subdomains": "www,download,blog"
+		},
+		{
+			"host": "litecoin.com",
+			"subdomains": "www"
+		},
+		{
+			"host": "litecoincore.org",
+			"subdomains": "www"
+		},
+		{
+			"host": "litecoin-foundation.org",
+			"subdomains": "www"
+		}, 
+		{
+			"host": "litecointools.com",
+			"subdomains": "explorer,testnet"
+		},
+		{
+			"host":"litecore.io",
+			"subdomains": "insight,testnet"
+		}
+	],
+
+	"litecoin_server": {
+		"rpc_server": "localhost",
+		"rpc_port": 9332,
+		"rpc_username": "user",
+		"rpc_password": "pass"
+	}
+}
