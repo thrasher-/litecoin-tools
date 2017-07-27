@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -31,8 +30,4 @@ func LoadConfig() (Config, error) {
 	}
 
 	return cfg, nil
-}
-
-func BuildLitecoinServerURL(server ConfigLitecoinServer) string {
-	return fmt.Sprintf("http://%s:%s@%s:%d", server.RPCUsername, server.RPCPassword, server.RPCServer, server.RPCPort)
 }

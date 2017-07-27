@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+func BuildLitecoinServerURL() string {
+	return fmt.Sprintf("http://%s:%s@%s:%d", config.LitecoinServer.RPCUsername, config.LitecoinServer.RPCPassword, config.LitecoinServer.RPCServer, config.LitecoinServer.RPCPort)
+}
+
 func SendRPCRequest(method, req interface{}) (map[string]interface{}, error) {
 	var params []interface{}
 	if req != nil {
@@ -26,7 +30,7 @@ func SendRPCRequest(method, req interface{}) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	resp, err := http.Post(BuildLitecoinServerURL(config.LitecoinServer), "application/json", strings.NewReader(string(data)))
+	resp, err := http.Post(BuildLitecoinServerURL(), "application/json", strings.NewReader(string(data)))
 	if err != nil {
 		return nil, err
 	}

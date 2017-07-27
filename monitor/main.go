@@ -151,15 +151,15 @@ func ReportStateChange(endpoint string, nowOnline bool, err string) {
 
 func main() {
 	//ready := make(chan bool)
-
-	config, err := LoadConfig()
+	var err error
+	config, err = LoadConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Println("Loaded config")
+	log.Println("Loaded config.")
 	config.CheckDelay = time.Minute * config.CheckDelay
-	log.Println("Check delay set to", config.CheckDelay.Minutes(), " minute(s).")
+	log.Println("Check delay set to", config.CheckDelay.Minutes(), "minute(s).")
 
 	go SlackConnect(config.Slack.Token, config.Slack.Channel)
 
@@ -181,6 +181,7 @@ func main() {
 			block, err := TestBlockHeight()
 			if err != nil {
 				block.Status = err.Error()
+				log.Println(err)
 			} else {
 				log.Printf("Block height: %d with time: %d: %s.\n", block.BlockHeight, block.BlockTime, TimeSinceLastBlock(block.BlockTime))
 			}
