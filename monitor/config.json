@@ -1,4 +1,5 @@
 {
+	"check_delay": 1,
 	"http_server": ":4001",
 
 	"slack": {

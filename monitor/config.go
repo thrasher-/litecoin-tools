@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 const (
@@ -14,6 +15,7 @@ type Config struct {
 	DNSSeeders     []ConfigDNSSeeders   `json:"dns_seeders"`
 	Websites       []ConfigWebsites     `json:"websites"`
 	LitecoinServer ConfigLitecoinServer `json:"litecoin_server"`
+	CheckDelay     time.Duration        `json:"check_delay"`
 }
 
 func LoadConfig() (Config, error) {

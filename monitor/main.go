@@ -158,6 +158,8 @@ func main() {
 	}
 
 	log.Println("Loaded config")
+	config.CheckDelay = time.Minute * config.CheckDelay
+	log.Println("Check delay set to", config.CheckDelay.Minutes(), " minute(s).")
 
 	go SlackConnect(config.Slack.Token, config.Slack.Channel)
 
@@ -188,7 +190,7 @@ func main() {
 			newOutput := output.Get()
 			CheckState(oldOutput, newOutput)
 			//	ready <- true
-			time.Sleep(time.Minute)
+			time.Sleep(config.CheckDelay)
 		}
 	}()
 	//<-ready

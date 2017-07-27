@@ -135,8 +135,15 @@ func SlackConnect(token string, channelTarget string) {
 
 	log.Printf("%s [%s] connected to %s [%s] \nWebsocket URL: %s.\n", slack.Details.Self.Name, slack.Details.Self.ID, slack.Details.Team.Domain, slack.Details.Team.ID, slack.Details.URL)
 	log.Printf("Slack channels: %s", slack.GetChannelsString())
-	log.Printf("Channel target: %s ID: %s", channelTarget, slack.GetGroupIDByName(channelTarget))
-	slack.Channel = slack.GetGroupIDByName(channelTarget)
+
+	id := slack.GetChannelIDByName(channelTarget)
+	if id != "" {
+		log.Printf("Channel target (channel): %s ID: %s\n", channelTarget, id)
+	} else {
+		id = slack.GetGroupIDByName(channelTarget)
+		log.Printf("Channel target (group): %s ID: %s\n", channelTarget, id)
+	}
+	slack.Channel = id
 	var Dialer websocket.Dialer
 
 	for {
