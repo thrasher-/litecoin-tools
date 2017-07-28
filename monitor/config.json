@@ -42,6 +42,10 @@
 		{
 			"host":"litecore.io",
 			"subdomains": "insight,testnet"
+		},
+		{
+			"host":"thrasher.io",
+			"subdomains": "testnet"
 		}
 	],
 
