@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func BuildLitecoinServerURL() string {
@@ -101,6 +103,7 @@ func TestBlockHeight() (BlockInfo, error) {
 	}
 
 	blockInfo.BlockHeight = blockHeight
+	blockInfo.BlockHash = blockHash
 	blockInfo.BlockTime = blockTime
 	blockInfo.TimeElapsed = GetSecondsElapsed(blockTime)
 	blockInfo.Status = TimeSinceLastBlock(blockTime)
@@ -119,4 +122,39 @@ func TimeSinceLastBlock(blockTime int64) string {
 		return "POTENTIAL ISSUE: Block not found within 30 minutes."
 	}
 	return "OK"
+}
+
+func BlockMonitor() {
+	bi, err := TestBlockHeight()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	errCounter := 0
+	blockHeight := bi.BlockHeight
+
+	for {
+		bInfo, err := TestBlockHeight()
+		if err != nil {
+			errCounter++
+			log.Println(err)
+
+			if errCounter > 5 {
+				log.Fatal(err)
+			}
+		} else {
+			errCounter = 0
+			if bInfo.BlockHeight != blockHeight {
+				msg := fmt.Sprintf("New block! Height: %d Hash: %s Time: %d - %s\n", bInfo.BlockHeight, bInfo.BlockHash, bInfo.BlockTime, TimeSinceLastBlock(bInfo.BlockTime))
+				if config.ReportBlocks {
+					if slack.Connected {
+						slack.SendMessage(slack.Channel, msg)
+					}
+				}
+				blockHeight = bInfo.BlockHeight
+				output.UpdateBlockInfo(bInfo)
+			}
+		}
+		time.Sleep(time.Second * 10)
+	}
 }

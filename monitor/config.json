@@ -1,6 +1,7 @@
 {
-	"check_delay": 1,
-	"http_server": ":4001",
+	"check_delay": 2,
+	"report_blocks": false,
+	"http_server": ":8080",
 
 	"slack": {
 		"token": "asdf",
@@ -37,7 +38,8 @@
 		}, 
 		{
 			"host": "litecointools.com",
-			"subdomains": "explorer,testnet"
+			"subdomains": "explorer,testnet",
+			"exclusions": "https"
 		},
 		{
 			"host":"litecore.io",

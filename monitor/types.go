@@ -8,6 +8,7 @@ import (
 type BlockInfo struct {
 	BlockHeight int64  `json:"block_height"`
 	BlockTime   int64  `json:"block_time"`
+	BlockHash   string `json:"block_hash"`
 	TimeElapsed int64  `json:"time_elapsed"`
 	Status      string `json:"status"`
 }
@@ -20,13 +21,21 @@ type DNSSeeder struct {
 	Error     string `json:"error"`
 }
 
-type Site struct {
-	Name        string `json:"name"`
+type SiteProtocol struct {
 	Status      string `json:"status"`
 	HTTPCode    int    `json:"http_code"`
 	ContentSize int    `json:"content_size"`
 	RespTime    string `json:"response_time"`
 	Error       string `json:"error"`
+}
+
+type Site struct {
+	Name           string `json:"name"`
+	NeedsAttention bool   `json:"needs_attention"`
+	Protocol       struct {
+		HTTP  SiteProtocol `json:"http"`
+		HTTPS SiteProtocol `json:"https"`
+	} `json:"protocol"`
 }
 
 type Output struct {
@@ -48,6 +57,7 @@ type ConfigWebsites struct {
 	Host         string `json:"host"`
 	Subdomains   string `json:"subdomains"`
 	ContentMatch string `json:"content_match"`
+	Exclusions   string `json:"exclusions,omitempty"`
 }
 
 type ConfigLitecoinServer struct {

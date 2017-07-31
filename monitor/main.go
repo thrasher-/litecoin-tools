@@ -14,6 +14,7 @@ var (
 	output Output
 	slack  Slack
 	config Config
+	ip     string
 )
 
 func TestSeeders(name string, seeders []string) []DNSSeeder {
@@ -41,35 +42,60 @@ func TestSeeders(name string, seeders []string) []DNSSeeder {
 	return dnsList
 }
 
+func IsSiteExluded(host, protocol string) bool {
+	for _, x := range config.Websites {
+		if host == x.Host && strings.Contains(protocol, x.Exclusions) && x.Exclusions != "" {
+			return true
+		}
+	}
+	return false
+}
+
 func TestSites(name string, subdomains []string) []Site {
 	log.Printf("Testing %s site..\n", name)
 	tm := time.Now()
 	errCounter := 0
 	var siteList []Site
-	//TO-DO: httpPrefixes := []string{"http://", "https://"}
+	httpPrefixes := []string{"http://", "https://"}
 
 	for _, x := range subdomains {
-		url := fmt.Sprintf("http://%s.%s", x, name)
-		tm2 := time.Now()
-		_, contentSize, httpCode, err := SendHTTPGetRequest(url, false)
-		url = StripHTTPPrefix(url)
-		site := Site{Name: url}
-		if err != nil {
-			errCounter++
-			site.Status = GetOnlineOffline(false)
-			site.HTTPCode = httpCode
-			site.ContentSize = contentSize
-			site.Error = err.Error()
-			log.Printf("%s FAIL.\t\t Test took %s. Error: %s\n", url, time.Since(tm2).String(), err)
-		} else {
-			site.Status = GetOnlineOffline(true)
-			site.HTTPCode = httpCode
-			site.ContentSize = contentSize
-			site.RespTime = time.Since(tm2).String()
-			log.Printf("%s OK.\t\t Test took %s\n", url, time.Since(tm2).String())
+		var site Site
+		for _, y := range httpPrefixes {
+			url := fmt.Sprintf("%s%s.%s", y, x, name)
+			site.Name = StripHTTPPrefix(url)
+			var result SiteProtocol
+
+			if IsSiteExluded(name, y) {
+				result.Status = "NA"
+				result.Error = ""
+			} else {
+				tm2 := time.Now()
+				_, contentSize, httpCode, err := SendHTTPGetRequest(url, false)
+
+				result.ContentSize = contentSize
+				result.HTTPCode = httpCode
+				result.RespTime = time.Since(tm2).String()
+
+				if err != nil {
+					result.Status = GetOnlineOffline(false)
+					result.Error = err.Error()
+					site.NeedsAttention = true
+					log.Printf("%s FAIL.\t\t Test took %s. Error: %s\n", url, time.Since(tm2).String(), err)
+				} else {
+					result.Status = GetOnlineOffline(true)
+					log.Printf("%s OK.\t\t Test took %s\n", url, time.Since(tm2).String())
+				}
+			}
+
+			if y == "http://" {
+				site.Protocol.HTTP = result
+			} else {
+				site.Protocol.HTTPS = result
+			}
 		}
 		siteList = append(siteList, site)
 	}
+
 	log.Printf("%d/%d %s site components online. Total test duration took %s\n", len(subdomains)-errCounter, len(subdomains), name, time.Since(tm).String())
 	return siteList
 }
@@ -84,21 +110,30 @@ func GetOverallStatus(result *Output) string {
 	}
 
 	for _, x := range result.Websites {
-		if x.Error != "" {
-			log.Printf("Website %s needs attention. Error: %s", x.Name, x.Error)
+		if x.Protocol.HTTP.Error != "" {
+			log.Printf("Website %s needs attention. Error: %s", x.Name, x.Protocol.HTTP.Error)
+			health = "Needs attention."
+		}
+		if x.Protocol.HTTPS.Error != "" {
+			log.Printf("Website %s needs attention. Error: %s", x.Name, x.Protocol.HTTPS.Error)
 			health = "Needs attention."
 		}
 	}
 	return health
 }
 
-func (o *Output) Update(seeders []DNSSeeder, sites []Site, block BlockInfo) {
+func (o *Output) Update(seeders []DNSSeeder, sites []Site) {
 	o.mux.Lock()
 	o.DNSSeeders = seeders
 	o.Websites = sites
 	o.LastUpdated = time.Now().Unix()
-	o.Block = block
 	o.Status = GetOverallStatus(o)
+	o.mux.Unlock()
+}
+
+func (o *Output) UpdateBlockInfo(bi BlockInfo) {
+	o.mux.Lock()
+	o.Block = bi
 	o.mux.Unlock()
 }
 
@@ -127,11 +162,17 @@ func CheckState(oldOuput, newOutput Output) {
 	}
 
 	for x := range oldOuput.Websites {
-		if oldOuput.Websites[x].Error != newOutput.Websites[x].Error {
-			if oldOuput.Websites[x].Error == "" && newOutput.Websites[x].Error != "" {
-				ReportStateChange(oldOuput.Websites[x].Name, false, newOutput.Websites[x].Error)
-			} else if oldOuput.Websites[x].Error != "" && newOutput.Websites[x].Error == "" {
-				ReportStateChange(oldOuput.Websites[x].Name, true, "")
+		if oldOuput.Websites[x].NeedsAttention != newOutput.Websites[x].NeedsAttention {
+			if oldOuput.Websites[x].Protocol.HTTP.Error == "" && newOutput.Websites[x].Protocol.HTTP.Error != "" {
+				ReportStateChange("http://"+oldOuput.Websites[x].Name, false, newOutput.Websites[x].Protocol.HTTP.Error)
+			} else if oldOuput.Websites[x].Protocol.HTTP.Error != "" && newOutput.Websites[x].Protocol.HTTP.Error == "" {
+				ReportStateChange("http://"+oldOuput.Websites[x].Name, true, "")
+			}
+
+			if oldOuput.Websites[x].Protocol.HTTPS.Error == "" && newOutput.Websites[x].Protocol.HTTPS.Error != "" {
+				ReportStateChange("https://"+oldOuput.Websites[x].Name, false, newOutput.Websites[x].Protocol.HTTPS.Error)
+			} else if oldOuput.Websites[x].Protocol.HTTPS.Error != "" && newOutput.Websites[x].Protocol.HTTPS.Error == "" {
+				ReportStateChange("https://"+oldOuput.Websites[x].Name, true, "")
 			}
 		}
 	}
@@ -163,6 +204,8 @@ func main() {
 
 	go SlackConnect(config.Slack.Token, config.Slack.Channel)
 
+	go BlockMonitor()
+
 	go func() {
 		for {
 			var seeders []DNSSeeder
@@ -178,16 +221,8 @@ func main() {
 				sites = append(sites, result...)
 			}
 
-			block, err := TestBlockHeight()
-			if err != nil {
-				block.Status = err.Error()
-				log.Println(err)
-			} else {
-				log.Printf("Block height: %d with time: %d: %s.\n", block.BlockHeight, block.BlockTime, TimeSinceLastBlock(block.BlockTime))
-			}
-
 			oldOutput := output
-			output.Update(seeders, sites, block)
+			output.Update(seeders, sites)
 			newOutput := output.Get()
 			CheckState(oldOutput, newOutput)
 			//	ready <- true
@@ -195,6 +230,13 @@ func main() {
 		}
 	}()
 	//<-ready
+
+	ip, err = GetExternalIP()
+	if err != nil {
+		log.Printf("Unable to get IP. Error %s", err)
+	} else {
+		log.Println("External IP: ", ip)
+	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		output.UpdateBlockTime()

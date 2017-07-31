@@ -2,9 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -43,6 +42,16 @@ func ReadFile(path string) ([]byte, error) {
 	return file, nil
 }
 
+func GetExternalIP() (string, error) {
+	ipResp, _, _, err := SendHTTPGetRequest("http://myexternalip.com/raw", false)
+	if err != nil {
+		return "", err
+	}
+
+	ipAddr := ipResp.(string)
+	return strings.Trim(ipAddr, "\n"), nil
+}
+
 func SendHTTPGetRequest(url string, jsonDecode bool) (result interface{}, contentSize, httpCode int, err error) {
 	res, err := http.Get(url)
 
@@ -52,8 +61,7 @@ func SendHTTPGetRequest(url string, jsonDecode bool) (result interface{}, conten
 
 	httpCode = res.StatusCode
 	if httpCode != 200 && httpCode != 400 {
-		log.Printf("HTTP status code: %d\n", httpCode)
-		err = errors.New("Status code was not 200.")
+		err = fmt.Errorf("HTTP Status code was not equal to 200. Code: %d", httpCode)
 		return
 	}
 

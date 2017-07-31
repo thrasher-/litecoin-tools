@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -225,7 +226,7 @@ func (s Slack) HandleMessage(msg SlackMessage) {
 			s.SendMessage(msg.Channel, "Bot is currently fetching data..")
 			break
 		}
-		result := fmt.Sprintf("Status: %s, last updated: %d second(s) ago.", output.Status, GetSecondsElapsed(output.LastUpdated))
+		result := fmt.Sprintf("Status: %s Last updated: %d second(s) ago.", output.Status, GetSecondsElapsed(output.LastUpdated))
 		s.SendMessage(msg.Channel, result)
 	case "!hello":
 		s.SendMessage(msg.Channel, fmt.Sprintf("Hello %s!", s.GetUsernameByID(msg.User)))
@@ -237,5 +238,8 @@ func (s Slack) HandleMessage(msg SlackMessage) {
 		info := fmt.Sprintf("Block height: %d Block time: %d Status: %s Seconds elapsed since last block: %d", output.Block.BlockHeight,
 			output.Block.BlockTime, output.Block.Status, GetSecondsElapsed(output.Block.BlockTime))
 		s.SendMessage(msg.Channel, info)
+	case "!api":
+		port := strings.Split(config.HTTPServer, ":")
+		s.SendMessage(msg.Channel, fmt.Sprintf("API URL http://%s:%s", ip, port[1]))
 	}
 }
