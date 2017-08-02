@@ -130,6 +130,7 @@ func BlockMonitor() {
 		log.Fatal(err)
 	}
 
+	output.UpdateBlockInfo(bi)
 	errCounter := 0
 	blockHeight := bi.BlockHeight
 

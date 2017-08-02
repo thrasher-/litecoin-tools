@@ -16,6 +16,7 @@ type Config struct {
 	LitecoinServer ConfigLitecoinServer `json:"litecoin_server"`
 	CheckDelay     time.Duration        `json:"check_delay"`
 	ReportBlocks   bool                 `json:"report_blocks"`
+	APIUrl         string               `json:"api_url"`
 }
 
 func LoadConfig() (Config, error) {

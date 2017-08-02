@@ -51,6 +51,18 @@ func IsSiteExluded(host, protocol string) bool {
 	return false
 }
 
+func CheckContentMatch(endpoint, content string) bool {
+	for _, x := range config.Websites {
+		for _, y := range x.ContentMatch {
+			ep := y.Subdomains + "." + x.Host
+			if (ep == endpoint && y.StringCheck != "" && strings.Contains(content, y.StringCheck)) || y.StringCheck == "" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func TestSites(name string, subdomains []string) []Site {
 	log.Printf("Testing %s site..\n", name)
 	tm := time.Now()
@@ -70,7 +82,7 @@ func TestSites(name string, subdomains []string) []Site {
 				result.Error = ""
 			} else {
 				tm2 := time.Now()
-				_, contentSize, httpCode, err := SendHTTPGetRequest(url, false)
+				content, contentSize, httpCode, err := SendHTTPGetRequest(url, false)
 
 				result.ContentSize = contentSize
 				result.HTTPCode = httpCode
@@ -82,6 +94,14 @@ func TestSites(name string, subdomains []string) []Site {
 					site.NeedsAttention = true
 					log.Printf("%s FAIL.\t\t Test took %s. Error: %s\n", url, time.Since(tm2).String(), err)
 				} else {
+					if CheckContentMatch(site.Name, content.(string)) {
+						log.Printf("%s content MATCHES\n", url)
+					} else {
+						err = fmt.Errorf("%s content match failed", url)
+						log.Println(content)
+						result.Error = err.Error()
+						log.Printf("%s FAIL.\t\t Test took %s. Error: %s\n", url, time.Since(tm2).String(), err)
+					}
 					result.Status = GetOnlineOffline(true)
 					log.Printf("%s OK.\t\t Test took %s\n", url, time.Since(tm2).String())
 				}

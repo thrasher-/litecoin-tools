@@ -235,11 +235,11 @@ func (s Slack) HandleMessage(msg SlackMessage) {
 			s.SendMessage(msg.Channel, "Bot is currently fetching data..")
 			break
 		}
-		info := fmt.Sprintf("Block height: %d Block time: %d Status: %s Seconds elapsed since last block: %d", output.Block.BlockHeight,
-			output.Block.BlockTime, output.Block.Status, GetSecondsElapsed(output.Block.BlockTime))
+		info := fmt.Sprintf("Block height: %d Hash: %s Time: %d Status: %s Seconds elapsed since last block: %d", output.Block.BlockHeight,
+			output.Block.BlockHash, output.Block.BlockTime, output.Block.Status, GetSecondsElapsed(output.Block.BlockTime))
 		s.SendMessage(msg.Channel, info)
 	case "!api":
 		port := strings.Split(config.HTTPServer, ":")
-		s.SendMessage(msg.Channel, fmt.Sprintf("API URL http://%s:%s", ip, port[1]))
+		s.SendMessage(msg.Channel, fmt.Sprintf("API URL http://%s:%s", GetAPIURL(), port[1]))
 	}
 }

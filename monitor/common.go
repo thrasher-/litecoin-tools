@@ -91,3 +91,10 @@ func GetSecondsElapsed(timestamp int64) int64 {
 	tm := time.Unix(timestamp, 0)
 	return int64(time.Since(tm).Seconds())
 }
+
+func GetAPIURL() string {
+	if config.APIUrl != "" {
+		return config.APIUrl
+	}
+	return ip
+}

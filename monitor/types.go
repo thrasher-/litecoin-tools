@@ -56,8 +56,11 @@ type ConfigDNSSeeders struct {
 type ConfigWebsites struct {
 	Host         string `json:"host"`
 	Subdomains   string `json:"subdomains"`
-	ContentMatch string `json:"content_match"`
-	Exclusions   string `json:"exclusions,omitempty"`
+	ContentMatch []struct {
+		Subdomains  string `json:"subdomains"`
+		StringCheck string `json:"string_check"`
+	} `json:"content_match"`
+	Exclusions string `json:"exclusions,omitempty"`
 }
 
 type ConfigLitecoinServer struct {
