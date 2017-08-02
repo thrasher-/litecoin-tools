@@ -83,26 +83,24 @@ func TestSites(name string, subdomains []string) []Site {
 			} else {
 				tm2 := time.Now()
 				content, contentSize, httpCode, err := SendHTTPGetRequest(url, false)
-
 				result.ContentSize = contentSize
 				result.HTTPCode = httpCode
 				result.RespTime = time.Since(tm2).String()
+				result.Status = GetOnlineOffline(true) // default to online
+				contentMatch := CheckContentMatch(site.Name, content.(string))
 
-				if err != nil {
+				if err != nil || !contentMatch {
 					result.Status = GetOnlineOffline(false)
+
+					if !contentMatch {
+						err = fmt.Errorf("%s content match failed", url)
+					}
+
 					result.Error = err.Error()
 					site.NeedsAttention = true
 					log.Printf("%s FAIL.\t\t Test took %s. Error: %s\n", url, time.Since(tm2).String(), err)
 				} else {
-					if CheckContentMatch(site.Name, content.(string)) {
-						log.Printf("%s content MATCHES\n", url)
-					} else {
-						err = fmt.Errorf("%s content match failed", url)
-						log.Println(content)
-						result.Error = err.Error()
-						log.Printf("%s FAIL.\t\t Test took %s. Error: %s\n", url, time.Since(tm2).String(), err)
-					}
-					result.Status = GetOnlineOffline(true)
+					log.Println(url, "content match PASSED!")
 					log.Printf("%s OK.\t\t Test took %s\n", url, time.Since(tm2).String())
 				}
 			}
