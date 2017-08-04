@@ -87,7 +87,13 @@ func TestSites(name string, subdomains []string) []Site {
 				result.HTTPCode = httpCode
 				result.RespTime = time.Since(tm2).String()
 				result.Status = GetOnlineOffline(true) // default to online
-				contentMatch := CheckContentMatch(site.Name, content.(string))
+
+				var contentMatch bool
+				if content == nil {
+					contentMatch = CheckContentMatch(site.Name, "")
+				} else {
+					contentMatch = CheckContentMatch(site.Name, content.(string))
+				}
 
 				if err != nil || !contentMatch {
 					result.Status = GetOnlineOffline(false)
