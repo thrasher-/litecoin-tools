@@ -9,14 +9,15 @@ const (
 )
 
 type Config struct {
-	HTTPServer     string               `json:"http_server"`
-	Slack          ConfigSlack          `json:"slack"`
-	DNSSeeders     []ConfigDNSSeeders   `json:"dns_seeders"`
-	Websites       []ConfigWebsites     `json:"websites"`
-	LitecoinServer ConfigLitecoinServer `json:"litecoin_server"`
-	CheckDelay     time.Duration        `json:"check_delay"`
-	ReportBlocks   bool                 `json:"report_blocks"`
-	APIUrl         string               `json:"api_url"`
+	HTTPServer               string               `json:"http_server"`
+	Slack                    ConfigSlack          `json:"slack"`
+	DNSSeeders               []ConfigDNSSeeders   `json:"dns_seeders"`
+	Websites                 []ConfigWebsites     `json:"websites"`
+	LitecoinServer           ConfigLitecoinServer `json:"litecoin_server"`
+	CheckDelay               time.Duration        `json:"check_delay"`
+	ErrorTransitionThreshold int                  `json:"error_transition_threshold"`
+	ReportBlocks             bool                 `json:"report_blocks"`
+	APIUrl                   string               `json:"api_url"`
 }
 
 func LoadConfig() (Config, error) {

@@ -11,10 +11,11 @@ import (
 )
 
 var (
-	output Output
-	slack  Slack
-	config Config
-	ip     string
+	output             Output
+	slack              Slack
+	config             Config
+	ip                 string
+	endpointErrorState map[string]int
 )
 
 func TestSeeders(name string, seeders []string) []DNSSeeder {
@@ -128,18 +129,29 @@ func GetOverallStatus(result *Output) string {
 	health := "OK"
 	for _, x := range result.DNSSeeders {
 		if x.Error != "" {
-			log.Printf("DNS seeder %s needs attention. Error: %s", x.Name, x.Error)
+			endpointErrorState[x.Name]++
+			CheckExistingErrorState(x.Name, x.Error)
+			log.Printf("DNS seeder %s needs attention. Error: %s Failure counter: %d", x.Name, x.Error,
+				endpointErrorState[x.Name])
 			health = "Needs attention."
 		}
 	}
 
 	for _, x := range result.Websites {
 		if x.Protocol.HTTP.Error != "" {
-			log.Printf("Website %s needs attention. Error: %s", x.Name, x.Protocol.HTTP.Error)
+			endpointName := "http://" + x.Name
+			endpointErrorState[endpointName]++
+			CheckExistingErrorState(endpointName, x.Protocol.HTTP.Error)
+			log.Printf("Website %s needs attention. Error: %s Failure counter: %d", x.Name, x.Protocol.HTTP.Error,
+				endpointErrorState[endpointName])
 			health = "Needs attention."
 		}
 		if x.Protocol.HTTPS.Error != "" {
-			log.Printf("Website %s needs attention. Error: %s", x.Name, x.Protocol.HTTPS.Error)
+			endpointName := "https://" + x.Name
+			endpointErrorState[endpointName]++
+			CheckExistingErrorState(endpointName, x.Protocol.HTTPS.Error)
+			log.Printf("Website %s needs attention. Error: %s Failure counter: %d", x.Name, x.Protocol.HTTPS.Error,
+				endpointErrorState[endpointName])
 			health = "Needs attention."
 		}
 	}
@@ -202,15 +214,23 @@ func CheckState(oldOuput, newOutput Output) {
 	}
 }
 
-func ReportStateChange(endpoint string, nowOnline bool, err string) {
+func CheckExistingErrorState(endpoint, err string) {
 	var result string
-	if nowOnline {
-		result = fmt.Sprintf("%s has transitioned from OFFLINE to ONLINE.", endpoint)
-	} else {
+	if endpointErrorState[endpoint] == config.ErrorTransitionThreshold {
 		result = fmt.Sprintf("%s has transitioned from ONLINE to OFFLINE. Error %s", endpoint, err)
+		if slack.Connected {
+			slack.SendMessage(slack.Channel, result)
+		}
 	}
-	if slack.Connected {
-		slack.SendMessage(slack.Channel, result)
+}
+
+func ReportStateChange(endpoint string, nowOnline bool, err string) {
+	if nowOnline {
+		endpointErrorState[endpoint] = 0
+		result := fmt.Sprintf("%s has transitioned from OFFLINE to ONLINE.", endpoint)
+		if slack.Connected {
+			slack.SendMessage(slack.Channel, result)
+		}
 	}
 }
 
@@ -229,6 +249,8 @@ func main() {
 	go SlackConnect(config.Slack.Token, config.Slack.Channel)
 
 	go BlockMonitor()
+
+	endpointErrorState = make(map[string]int)
 
 	go func() {
 		for {

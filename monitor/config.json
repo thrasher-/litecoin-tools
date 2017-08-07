@@ -1,5 +1,6 @@
 {
-	"check_delay": 2,
+	"check_delay": 5,
+	"error_transition_threshold": 2,
 	"report_blocks": false,
 	"api_url": "",
 	"http_server": ":8080",
