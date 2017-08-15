@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"time"
 )
 
@@ -16,6 +18,7 @@ type Config struct {
 	LitecoinServer           ConfigLitecoinServer `json:"litecoin_server"`
 	CheckDelay               time.Duration        `json:"check_delay"`
 	ErrorTransitionThreshold int                  `json:"error_transition_threshold"`
+	KnownErrorEndpoints      string               `json:"known_error_endpoints"`
 	ReportBlocks             bool                 `json:"report_blocks"`
 	APIUrl                   string               `json:"api_url"`
 }
@@ -33,4 +36,12 @@ func LoadConfig() (Config, error) {
 	}
 
 	return cfg, nil
+}
+
+func SaveConfig(cfg Config) error {
+	payloadJSON, err := json.MarshalIndent(cfg, "", " ")
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(ConfigFile, payloadJSON, 0644)
 }

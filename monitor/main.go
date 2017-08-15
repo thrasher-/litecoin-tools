@@ -6,16 +6,20 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 )
 
 var (
-	output             Output
-	slack              Slack
-	config             Config
-	ip                 string
-	endpointErrorState map[string]int
+	output              Output
+	slack               Slack
+	config              Config
+	ip                  string
+	endpointErrorState  map[string]int
+	knownErrorEndpoints []string
 )
 
 func TestSeeders(name string, seeders []string) []DNSSeeder {
@@ -131,9 +135,11 @@ func GetOverallStatus(result *Output) string {
 		if x.Error != "" {
 			endpointErrorState[x.Name]++
 			CheckExistingErrorState(x.Name, x.Error)
-			log.Printf("DNS seeder %s needs attention. Error: %s Failure counter: %d", x.Name, x.Error,
-				endpointErrorState[x.Name])
+			log.Printf("DNS seeder %s needs attention. Error: %s Failure counter: %d Is known: %v\n", x.Name, x.Error,
+				endpointErrorState[x.Name], IsKnownErrorEndpoint(x.Name))
 			health = "Needs attention."
+		} else {
+			endpointErrorState[x.Name] = 0
 		}
 	}
 
@@ -142,17 +148,21 @@ func GetOverallStatus(result *Output) string {
 			endpointName := "http://" + x.Name
 			endpointErrorState[endpointName]++
 			CheckExistingErrorState(endpointName, x.Protocol.HTTP.Error)
-			log.Printf("Website %s needs attention. Error: %s Failure counter: %d", x.Name, x.Protocol.HTTP.Error,
-				endpointErrorState[endpointName])
+			log.Printf("Website %s needs attention. Error: %s Failure counter: %d Is known: %v\n", x.Name, x.Protocol.HTTP.Error,
+				endpointErrorState[endpointName], IsKnownErrorEndpoint(endpointName))
 			health = "Needs attention."
+		} else {
+			endpointErrorState["http://"+x.Name] = 0
 		}
 		if x.Protocol.HTTPS.Error != "" {
 			endpointName := "https://" + x.Name
 			endpointErrorState[endpointName]++
 			CheckExistingErrorState(endpointName, x.Protocol.HTTPS.Error)
-			log.Printf("Website %s needs attention. Error: %s Failure counter: %d", x.Name, x.Protocol.HTTPS.Error,
-				endpointErrorState[endpointName])
+			log.Printf("Website %s needs attention. Error: %s Failure counter: %d Is known: %v\n", x.Name, x.Protocol.HTTPS.Error,
+				endpointErrorState[endpointName], IsKnownErrorEndpoint(endpointName))
 			health = "Needs attention."
+		} else {
+			endpointErrorState["https://"+x.Name] = 0
 		}
 	}
 	return health
@@ -214,10 +224,28 @@ func CheckState(oldOuput, newOutput Output) {
 	}
 }
 
+func IsKnownErrorEndpoint(endpoint string) bool {
+	for x := range knownErrorEndpoints {
+		if knownErrorEndpoints[x] == endpoint {
+			return true
+		}
+	}
+	return false
+}
+
+func RemoveKnownErrorEndpoint(endpoint string) {
+	for i, v := range knownErrorEndpoints {
+		if v == endpoint {
+			knownErrorEndpoints = append(knownErrorEndpoints[:i], knownErrorEndpoints[i+1:]...)
+		}
+	}
+}
+
 func CheckExistingErrorState(endpoint, err string) {
 	var result string
-	if endpointErrorState[endpoint] == config.ErrorTransitionThreshold {
+	if endpointErrorState[endpoint] == config.ErrorTransitionThreshold && !IsKnownErrorEndpoint(endpoint) {
 		result = fmt.Sprintf("%s has transitioned from ONLINE to OFFLINE. Error %s", endpoint, err)
+		knownErrorEndpoints = append(knownErrorEndpoints, endpoint)
 		if slack.Connected {
 			slack.SendMessage(slack.Channel, result)
 		}
@@ -225,8 +253,9 @@ func CheckExistingErrorState(endpoint, err string) {
 }
 
 func ReportStateChange(endpoint string, nowOnline bool, err string) {
-	if nowOnline && endpointErrorState[endpoint] >= config.ErrorTransitionThreshold {
+	if nowOnline && endpointErrorState[endpoint] >= config.ErrorTransitionThreshold || IsKnownErrorEndpoint(endpoint) {
 		endpointErrorState[endpoint] = 0
+		RemoveKnownErrorEndpoint(endpoint)
 		result := fmt.Sprintf("%s has transitioned from OFFLINE to ONLINE.", endpoint)
 		if slack.Connected {
 			slack.SendMessage(slack.Channel, result)
@@ -234,8 +263,35 @@ func ReportStateChange(endpoint string, nowOnline bool, err string) {
 	}
 }
 
+func HandleInterrupt() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		sig := <-c
+		log.Printf("Captured %v.", sig)
+		Shutdown()
+	}()
+}
+
+func Shutdown() {
+	log.Println("Shutting down")
+	config.KnownErrorEndpoints = strings.Join(knownErrorEndpoints, ",")
+	err := SaveConfig(config)
+
+	if err != nil {
+		log.Println("Failed to save config")
+	} else {
+		log.Println("Saved config file successfully")
+	}
+
+	log.Println("Exiting.")
+	os.Exit(1)
+}
+
 func main() {
 	//ready := make(chan bool)
+	go HandleInterrupt()
+
 	var err error
 	config, err = LoadConfig()
 	if err != nil {
@@ -243,8 +299,11 @@ func main() {
 	}
 
 	log.Println("Loaded config.")
-	config.CheckDelay = time.Minute * config.CheckDelay
-	log.Println("Check delay set to", config.CheckDelay.Minutes(), "minute(s).")
+	log.Println("Check delay set to", (config.CheckDelay * time.Minute).Minutes(), "minute(s).")
+	log.Printf("Error transition threshold set to %d.\n", config.ErrorTransitionThreshold)
+
+	knownErrorEndpoints = strings.Split(config.KnownErrorEndpoints, ",")
+	log.Printf("Ignoring known error endpoints until resolution: %s\n", knownErrorEndpoints)
 
 	go SlackConnect(config.Slack.Token, config.Slack.Channel)
 
@@ -272,7 +331,7 @@ func main() {
 			newOutput := output.Get()
 			CheckState(oldOutput, newOutput)
 			//	ready <- true
-			time.Sleep(config.CheckDelay)
+			time.Sleep(time.Minute * config.CheckDelay)
 		}
 	}()
 	//<-ready
@@ -289,7 +348,6 @@ func main() {
 		data, err := json.MarshalIndent(output.Get(), "", "\t")
 		if err != nil {
 			panic(err)
-			return
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(data)

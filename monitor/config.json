@@ -1,121 +1,117 @@
 {
-	"check_delay": 5,
-	"error_transition_threshold": 2,
-	"report_blocks": false,
-	"api_url": "",
-	"http_server": ":8080",
-
-	"slack": {
-		"token": "asdf",
-		"channel": "test"
-	},
-
-	"dns_seeders": [
-		{
-			"host": "seed-a.litecoin.loshan.co.uk,dnsseed.thrasher.io,dnsseed.litecointools.com,dnsseed.litecoinpool.org,dnsseed.koin-project.com",
-			"type": "mainnet"
-		},
-		{
-			"host": "testnet-seed.litecointools.com,seed-b.litecoin.loshan.co.uk,dnsseed-testnet.thrasher.io",
-			"type": "testnet"
-		}
-	],
-
-	"websites": [
-		{
-			"host": "litecoin.org",
-			"subdomains": "www,download,blog",
-			"content_match": [
-				{
-					"subdomains": "www",
-					"string_check": "Litecoin is a cryptocurrency that enables instant payments to anyone in the world and that can be efficiently mined with consumer-grade hardware."
-				},
-				{
-					"subdomains": "download",
-					"string_check": ""
-				},
-				{
-					"subdomains": "blog",
-					"string_check": "We are pleased to release Litecoin Core 0.14.2 release. This is a new major version release, including new features, various bug fixes and performance improvements. It is recommended for all"
-				}
-			]
-		},
-		{
-			"host": "litecoin.com",
-			"subdomains": "www",
-			"content_match": [
-				{
-					"subdomains": "www",
-					"string_check": "Explore global index of Litecoin exchanges, merchants and payment processors."
-
-				}
-			]
-		},
-		{
-			"host": "litecoincore.org",
-			"subdomains": "www",
-			"content_match": [
-				{
-					"subdomains": "www",
-					"string_check": "Litecoin Core Development Team"
-				}
-			]
-		},
-		{
-			"host": "litecoin-foundation.org",
-			"subdomains": "www",
-			"content_match": [
-				{
-					"subdomains": "www",
-					"string_check": "<title>Litecoin Foundation |</title>"
-				}
-			]
-		}, 
-		{
-			"host": "litecointools.com",
-			"subdomains": "explorer,testnet",
-			"exclusions": "https",
-			"content_match": [
-				{
-					"subdomains": "explorer",
-					"string_check": "transactions, blocks, address, block chain, best block, mining difficulty, hash"
-				},
-				{
-					"subdomains": "testnet",
-					"string_check": "LITECOIN TESTNET NODE INTERFACE"
-				}
-			]
-		},
-		{
-			"host":"litecore.io",
-			"subdomains": "insight,testnet",
-			"content_match": [
-				{
-					"subdomains": "insight",
-					"string_check": "transactions, blocks, address, block chain, best block, mining difficulty, hash"
-				},
-				{
-					"subdomains": "testnet",
-					"string_check": "transactions, blocks, address, block chain, best block, mining difficulty, hash"
-				}
-			]
-		},
-		{
-			"host":"thrasher.io",
-			"subdomains": "testnet",
-			"content_match": [
-				{
-					"subdomains": "testnet",
-					"string_check": "LITECOIN TESTNET NODE INTERFACE"
-				}
-			]
-		}
-	],
-
-	"litecoin_server": {
-		"rpc_server": "localhost",
-		"rpc_port": 9332,
-		"rpc_username": "user",
-		"rpc_password": "pass"
-	}
+ "http_server": ":8080",
+ "slack": {
+  "token": "asdf",
+  "channel": "test"
+ },
+ "dns_seeders": [
+  {
+   "host": "seed-a.litecoin.loshan.co.uk,dnsseed.thrasher.io,dnsseed.litecointools.com,dnsseed.litecoinpool.org,dnsseed.koin-project.com",
+   "type": "mainnet"
+  },
+  {
+   "host": "testnet-seed.litecointools.com,seed-b.litecoin.loshan.co.uk,dnsseed-testnet.thrasher.io",
+   "type": "testnet"
+  }
+ ],
+ "websites": [
+  {
+   "host": "litecoin.org",
+   "subdomains": "www,download,blog",
+   "content_match": [
+    {
+     "subdomains": "www",
+     "string_check": "Litecoin is a cryptocurrency that enables instant payments to anyone in the world and that can be efficiently mined with consumer-grade hardware."
+    },
+    {
+     "subdomains": "download",
+     "string_check": ""
+    },
+    {
+     "subdomains": "blog",
+     "string_check": "We are pleased to release Litecoin Core 0.14.2 release. This is a new major version release, including new features, various bug fixes and performance improvements. It is recommended for all"
+    }
+   ]
+  },
+  {
+   "host": "litecoin.com",
+   "subdomains": "www",
+   "content_match": [
+    {
+     "subdomains": "www",
+     "string_check": "Explore global index of Litecoin exchanges, merchants and payment processors."
+    }
+   ]
+  },
+  {
+   "host": "litecoincore.org",
+   "subdomains": "www",
+   "content_match": [
+    {
+     "subdomains": "www",
+     "string_check": "Litecoin Core Development Team"
+    }
+   ]
+  },
+  {
+   "host": "litecoin-foundation.org",
+   "subdomains": "www",
+   "content_match": [
+    {
+     "subdomains": "www",
+     "string_check": "\u003ctitle\u003eLitecoin Foundation |\u003c/title\u003e"
+    }
+   ]
+  },
+  {
+   "host": "litecointools.com",
+   "subdomains": "explorer,testnet",
+   "content_match": [
+    {
+     "subdomains": "explorer",
+     "string_check": "transactions, blocks, address, block chain, best block, mining difficulty, hash"
+    },
+    {
+     "subdomains": "testnet",
+     "string_check": "LITECOIN TESTNET NODE INTERFACE"
+    }
+   ],
+   "exclusions": "https"
+  },
+  {
+   "host": "litecore.io",
+   "subdomains": "insight,testnet",
+   "content_match": [
+    {
+     "subdomains": "insight",
+     "string_check": "transactions, blocks, address, block chain, best block, mining difficulty, hash"
+    },
+    {
+     "subdomains": "testnet",
+     "string_check": "transactions, blocks, address, block chain, best block, mining difficulty, hash"
+    }
+   ]
+  },
+  {
+   "host": "thrasher.io",
+   "subdomains": "testnet",
+   "content_match": [
+    {
+     "subdomains": "testnet",
+     "string_check": "LITECOIN TESTNET NODE INTERFACE"
+    }
+   ]
+  }
+ ],
+ "litecoin_server": {
+  "rpc_port": 9332,
+  "rpc_server": "localhost",
+  "rpc_username": "user",
+  "rpc_password": "pass"
+ },
+ "check_delay": 2,
+ "error_transition_threshold": 5,
+ "known_error_endpoints": "",
+ "report_blocks": false,
+ "api_url": ""
 }
