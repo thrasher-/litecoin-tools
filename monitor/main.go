@@ -225,7 +225,7 @@ func CheckExistingErrorState(endpoint, err string) {
 }
 
 func ReportStateChange(endpoint string, nowOnline bool, err string) {
-	if nowOnline {
+	if nowOnline && endpointErrorState[endpoint] >= config.ErrorTransitionThreshold {
 		endpointErrorState[endpoint] = 0
 		result := fmt.Sprintf("%s has transitioned from OFFLINE to ONLINE.", endpoint)
 		if slack.Connected {
