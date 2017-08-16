@@ -44,6 +44,16 @@
    ]
   },
   {
+   "host": "litecoinblockhalf.com",
+   "subdomains": "www",
+   "content_match": [
+    {
+     "subdomains": "www",
+     "string_check": "Litecoin's block mining reward halves every 840,000 blocks, the coin reward will decrease from 25 to 12.5 coins."
+    }
+   ]
+  },
+  {
    "host": "litecoincore.org",
    "subdomains": "www",
    "content_match": [
