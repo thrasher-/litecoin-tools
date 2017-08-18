@@ -35,7 +35,7 @@ func BuildTranslationsAndExclusions() {
 	Translations["Биткойн"] = "Litecoin"
 	Translations["Bitconi"] = "Liteconi"
 	Translations["Bitcoini"] = "Litecoini"
-	Translations["הביטקוין"] = "ללייטקוין"
+	Translations["הביטקוין"] = "לייטקוין"
 	Translations["ביטקוין"] = "ללייטקוין"
 	Translations["비트코인"] = "라이트코인을"
 	Translations["بیت‌کوین"] = "Litecoin"
