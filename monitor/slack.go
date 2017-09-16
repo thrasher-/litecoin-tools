@@ -156,7 +156,8 @@ func SlackConnect(token string, channelTarget string) {
 
 		if err != nil {
 			log.Printf("Slack: Unable to connect to Websocket. Error: %s\n", err)
-			time.Sleep(time.Second * 30)
+			slack.ReconnectURL = ""
+			SlackConnect(token, channelTarget)
 		}
 
 		for {
@@ -169,6 +170,10 @@ func SlackConnect(token string, channelTarget string) {
 			type Response struct {
 				Type    string `json:"type"`
 				ReplyTo int    `json:"reply_to"`
+				Error   struct {
+					Msg  string `json:"msg"`
+					Code int    `json:"code"`
+				} `json:"error"`
 			}
 
 			var data Response
@@ -177,6 +182,15 @@ func SlackConnect(token string, channelTarget string) {
 			if err != nil {
 				log.Println(err)
 				continue
+			}
+
+			if data.Type == "error" {
+				if data.Error.Msg == "Socket URL has expired" {
+					log.Println("Slack websocket URL has expired.. Reconnecting")
+					slack.WebsocketConn.Close()
+					slack.ReconnectURL = ""
+					SlackConnect(token, channelTarget)
+				}
 			}
 
 			switch data.Type {
