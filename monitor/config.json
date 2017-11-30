@@ -74,6 +74,16 @@
    ]
   },
   {
+    "host": "litecointalk.io",
+    "subdomains": "www",
+    "content_match": [
+     {
+      "subdomains": "www",
+      "string_check": "<title>The New Litecointalk Forum</title>"
+     }
+    ]
+   },
+  {
    "host": "litecointools.com",
    "subdomains": "explorer,testnet",
    "content_match": [
