@@ -9,6 +9,16 @@ import (
 	"time"
 )
 
+func FilterEmptyStrings(data []string) []string {
+	var result []string
+	for x := range data {
+		if data[x] != "" {
+			result = append(result, data[x])
+		}
+	}
+	return result
+}
+
 func JSONDecode(data []byte, to interface{}) error {
 	err := json.Unmarshal(data, &to)
 
@@ -43,7 +53,7 @@ func ReadFile(path string) ([]byte, error) {
 }
 
 func GetExternalIP() (string, error) {
-	ipResp, _, _, err := SendHTTPGetRequest("http://myexternalip.com/raw", false)
+	ipResp, _, _, err := SendHTTPGetRequest("https://api.ipify.org/", false)
 	if err != nil {
 		return "", err
 	}

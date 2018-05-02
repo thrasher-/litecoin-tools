@@ -1,7 +1,7 @@
 {
  "http_server": ":8080",
  "slack": {
-  "token": "asdf",
+  "token": "",
   "channel": "test"
  },
  "dns_seeders": [
@@ -74,15 +74,15 @@
    ]
   },
   {
-    "host": "litecointalk.io",
-    "subdomains": "www",
-    "content_match": [
-     {
-      "subdomains": "www",
-      "string_check": "<title>The New Litecointalk Forum</title>"
-     }
-    ]
-   },
+   "host": "litecointalk.io",
+   "subdomains": "www",
+   "content_match": [
+    {
+     "subdomains": "www",
+     "string_check": "\u003ctitle\u003eThe New Litecointalk Forum\u003c/title\u003e"
+    }
+   ]
+  },
   {
    "host": "litecointools.com",
    "subdomains": "explorer,testnet",

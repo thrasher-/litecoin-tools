@@ -205,6 +205,12 @@ func CheckState(oldOuput, newOutput Output) {
 				ReportStateChange(oldOuput.DNSSeeders[x].Name, true, "")
 			}
 		}
+
+		if newOutput.DNSSeeders[x].Error == "" {
+			if IsKnownErrorEndpoint(oldOuput.DNSSeeders[x].Name) {
+				ReportStateChange(oldOuput.DNSSeeders[x].Name, true, "")
+			}
+		}
 	}
 
 	for x := range oldOuput.Websites {
@@ -220,6 +226,14 @@ func CheckState(oldOuput, newOutput Output) {
 			} else if oldOuput.Websites[x].Protocol.HTTPS.Error != "" && newOutput.Websites[x].Protocol.HTTPS.Error == "" {
 				ReportStateChange("https://"+oldOuput.Websites[x].Name, true, "")
 			}
+		}
+
+		if newOutput.Websites[x].Protocol.HTTP.Error == "" && IsKnownErrorEndpoint("http://"+newOutput.Websites[x].Name) {
+			ReportStateChange("http://"+newOutput.Websites[x].Name, true, "")
+		}
+
+		if newOutput.Websites[x].Protocol.HTTPS.Error == "" && IsKnownErrorEndpoint("https://"+newOutput.Websites[x].Name) {
+			ReportStateChange("https://"+newOutput.Websites[x].Name, true, "")
 		}
 	}
 }
@@ -237,6 +251,7 @@ func RemoveKnownErrorEndpoint(endpoint string) {
 	for i, v := range knownErrorEndpoints {
 		if v == endpoint {
 			knownErrorEndpoints = append(knownErrorEndpoints[:i], knownErrorEndpoints[i+1:]...)
+			return
 		}
 	}
 }
@@ -275,7 +290,7 @@ func HandleInterrupt() {
 
 func Shutdown() {
 	log.Println("Shutting down")
-	config.KnownErrorEndpoints = strings.Join(knownErrorEndpoints, ",")
+	config.KnownErrorEndpoints = strings.Join(FilterEmptyStrings(knownErrorEndpoints), ",")
 	err := SaveConfig(config)
 
 	if err != nil {
@@ -302,7 +317,7 @@ func main() {
 	log.Println("Check delay set to", (config.CheckDelay * time.Minute).Minutes(), "minute(s).")
 	log.Printf("Error transition threshold set to %d.\n", config.ErrorTransitionThreshold)
 
-	knownErrorEndpoints = strings.Split(config.KnownErrorEndpoints, ",")
+	knownErrorEndpoints = FilterEmptyStrings(strings.Split(config.KnownErrorEndpoints, ","))
 	log.Printf("Ignoring known error endpoints until resolution: %s\n", knownErrorEndpoints)
 
 	go SlackConnect(config.Slack.Token, config.Slack.Channel)
@@ -324,6 +339,13 @@ func main() {
 			for _, x := range config.Websites {
 				result := TestSites(x.Host, strings.Split(x.Subdomains, ","))
 				sites = append(sites, result...)
+			}
+
+			if len(output.DNSSeeders) == 0 || len(output.Websites) == 0 {
+				log.Println("Populating output for the first time.")
+				output.Update(seeders, sites)
+				time.Sleep(time.Minute * config.CheckDelay)
+				continue
 			}
 
 			oldOutput := output

@@ -183,7 +183,7 @@ type SlackResponse struct {
 			A11yFontSize                       string      `json:"a11y_font_size"`
 			AllChannelsLoud                    bool        `json:"all_channels_loud"`
 			AllNotificationsPrefs              string      `json:"all_notifications_prefs"`
-			AllUnreadsSortOrder                bool        `json:"all_unreads_sort_order"`
+			AllUnreadsSortOrder                string      `json:"all_unreads_sort_order"`
 			AllowCallsToSetCurrentStatus       bool        `json:"allow_calls_to_set_current_status"`
 			AnalyticsUpsellCoachmarkSeen       bool        `json:"analytics_upsell_coachmark_seen"`
 			ArrowHistory                       bool        `json:"arrow_history"`

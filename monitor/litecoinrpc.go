@@ -57,7 +57,7 @@ func SendRPCRequest(method, req interface{}) (map[string]interface{}, error) {
 }
 
 func GetBlockHeight() (int64, error) {
-	result, err := SendRPCRequest("getinfo", nil)
+	result, err := SendRPCRequest("getblockchaininfo", nil)
 	if err != nil {
 		return 0, err
 	}
