@@ -121,6 +121,16 @@
      "string_check": "LITECOIN TESTNET NODE INTERFACE"
     }
    ]
+  },
+  {
+   "host": "loafwallet.org",
+   "subdomains": "api",
+   "content_match": [
+    {
+     "subdomains": "api",
+     "string_check": "magic"
+    }
+   ]
   }
  ],
  "litecoin_server": {
