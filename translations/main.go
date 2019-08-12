@@ -37,7 +37,7 @@ func BuildTranslationsAndExclusions() {
 	Translations["Bitcoini"] = "Litecoini"
 	Translations["הביטקוין"] = "לייטקוין"
 	Translations["ביטקוין"] = "ללייטקוין"
-	Translations["비트코인"] = "라이트코인을"
+	Translations["비트코인"] = "라이트코인" // KR: bitcoins -> litecoins
 	Translations["بیت‌کوین"] = "Litecoin"
 	Translations["بیت کوین"] = "litecoin"
 	Translations["बिटकोइन"] = "Litecoin"
@@ -45,6 +45,10 @@ func BuildTranslationsAndExclusions() {
 	Translations["Bitmon"] = "Litecoin"
 	Translations["Bitmono"] = "Litecoin"
 	Translations["bitmona"] = "litecoin"
+	Translations["비트코인을"] = "라이트코인을" // KR: Bitcoin -> Litecoin
+	Translations["비트코인들을"] = "라이트코인들을" // KR: BITCOINS -> LITECOINS
+	Translations["БИТКОЙНЫ"] = "ЛАЙТКОИНЫ" // RU: BITCOINS -> LITECOINS
+	Translations["ЛАЙТКОИНЫ"] = "лайткоин" // RU: Bitcoin -> Litecoin
 	Exclusions = append(Exclusions, []string{"The Bitcoin Core Developers", "BitcoinGUI", "bitcoin-core", ".cpp"}...)
 }
 
